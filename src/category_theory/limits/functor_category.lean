@@ -5,17 +5,31 @@ Authors: Scott Morrison
 -/
 import category_theory.products.basic
 import category_theory.limits.preserves
+import category_theory.limits.types
+import category_theory.yoneda
 
 open category_theory category_theory.category
 
 namespace category_theory.limits
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u} [𝒞 : category.{v} C]
+section
+
+-- The universe levels used here are maximally general so that `J` is a small category, and
+-- the universe levels of morphisms in `C`, `K ⥤ C`, and `J` are all equal
+-- (in particular to `(max v₁ u₂)`).
+
+-- (This generality actually inhibits typeclass search, so we restate some instances with
+-- universe levels further specialised, below.)
+
+variables {C : Type u₁} [𝒞 : category.{max v₁ u₂} C]
 include 𝒞
 
-variables {J K : Type v} [small_category J] [small_category K]
+variables {J : Type (max v₁ u₂)} [small_category J]
+
+variables {K : Type u₂} [𝒦 : category.{v₂} K]
+include 𝒦
 
 @[simp] lemma cone.functor_w {F : J ⥤ (K ⥤ C)} (c : cone F) {j j' : J} (f : j ⟶ j') (k : K) :
   (c.π.app j).app k ≫ (F.map f).app k = (c.π.app j').app k :=
@@ -66,7 +80,7 @@ def functor_category_is_limit_cone [has_limits_of_shape J C] (F : J ⥤ K ⥤ C)
       (((evaluation K C).obj k).map_cone s) (m.app k) (λ j, nat_trans.congr_app (w j) k)
   end }
 
-def functor_category_is_colimit_cocone [has_colimits_of_shape.{v} J C] (F : J ⥤ K ⥤ C) :
+def functor_category_is_colimit_cocone [has_colimits_of_shape J C] (F : J ⥤ K ⥤ C) :
   is_colimit (functor_category_colimit_cocone F) :=
 { desc := λ s,
   { app := λ k, colimit.desc (F.flip.obj k) (((evaluation K C).obj k).map_cocone s) },
@@ -89,10 +103,10 @@ instance functor_category_has_colimits_of_shape
   { cocone := functor_category_colimit_cocone F,
     is_colimit := functor_category_is_colimit_cocone F } }
 
-instance functor_category_has_limits [has_limits.{v} C] : has_limits.{v} (K ⥤ C) :=
+instance functor_category_has_limits [has_limits.{max v₁ u₂} C] : has_limits.{max v₁ u₂} (K ⥤ C) :=
 { has_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-instance functor_category_has_colimits [has_colimits.{v} C] : has_colimits.{v} (K ⥤ C) :=
+instance functor_category_has_colimits [has_colimits.{max v₁ u₂} C] : has_colimits.{max v₁ u₂} (K ⥤ C) :=
 { has_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
 instance evaluation_preserves_limits_of_shape [has_limits_of_shape J C] (k : K) :
@@ -109,12 +123,48 @@ instance evaluation_preserves_colimits_of_shape [has_colimits_of_shape J C] (k :
     is_colimit.of_iso_colimit (colimit.is_colimit _)
       (evaluate_functor_category_colimit_cocone F k).symm }
 
-instance evaluation_preserves_limits [has_limits.{v} C] (k : K) :
+instance evaluation_preserves_limits [has_limits.{max v₁ u₂} C] (k : K) :
   preserves_limits ((evaluation K C).obj k) :=
 { preserves_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-instance evaluation_preserves_colimits [has_colimits.{v} C] (k : K) :
+instance evaluation_preserves_colimits [has_colimits.{max v₁ u₂} C] (k : K) :
   preserves_colimits ((evaluation K C).obj k) :=
 { preserves_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
+
+end
+
+section
+-- In order to assist typeclass inference, we now restate some of these instances with
+-- specialised universe levels.
+
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
+include 𝒞
+
+variables {J : Type v₁} [small_category J]
+
+variables {K : Type v₁} [𝒦 : category.{v₂} K]
+include 𝒦
+
+instance functor_category_has_limits_of_shape'
+  [has_limits_of_shape J C] : has_limits_of_shape J (K ⥤ C) :=
+limits.functor_category_has_limits_of_shape.{v₁ v₂ u₁ v₁}
+
+instance functor_category_has_colimits_of_shape'
+  [has_colimits_of_shape J C] : has_colimits_of_shape J (K ⥤ C) :=
+limits.functor_category_has_colimits_of_shape.{v₁ v₂ u₁ v₁}
+
+instance functor_category_has_limits' [has_limits.{v₁} C] : has_limits.{v₁} (K ⥤ C) :=
+limits.functor_category_has_limits.{v₁ v₂ u₁ v₁}
+
+instance functor_category_has_colimits' [has_colimits.{v₁} C] : has_colimits.{v₁} (K ⥤ C) :=
+limits.functor_category_has_colimits.{v₁ v₂ u₁ v₁}
+
+end
+
+example (C : Type u₁) [small_category C] : has_limits.{u₁} (C ⥤ Type u₁) :=
+by apply_instance
+
+example (C : Type u₁) [small_category C] (X : C) : has_limit.{u₁} (yoneda.obj X) :=
+by apply_instance
 
 end category_theory.limits
