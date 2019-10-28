@@ -12,3 +12,5 @@ example (n : ℕ) : (n / 2) + (n / 2) = 2 * (n / 2) := by ring
 example {α} [linear_ordered_field α] (a b c : α) :
   a * (-c / b) * (-c / b) + -c + c = a * (c / b * (c / b)) := by ring
 example (x : ℚ) : x ^ (2 + 2) = x^4 := by ring
+example {α} [linear_ordered_field α] (a b c : α) :
+  b ^ 2 - 4 * c * a = -(4 * c * a) + b ^ 2 := by ring
