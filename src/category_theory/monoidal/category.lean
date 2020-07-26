@@ -455,4 +455,25 @@ end
 
 end monoidal_category
 
+class braided_monoidal_category (C : Type u) [category.{v} C]
+extends monoidal_category.{v} C :=
+(braiding             : Π X Y : C, X ⊗ Y ≅ Y ⊗ X)
+(notation `σ`         := braiding)
+(braiding_naturality' : ∀ {X X' Y Y' : C} (f : X ⟶ Y) (g : X' ⟶ Y'),
+  (f ⊗ g) ≫ (σ Y Y').hom = (σ X X').hom ≫ (g ⊗ f) . obviously)
+(hexagon_forward'     : Π X Y Z : C,
+    (α_ X Y Z).hom ≫ (σ X (Y ⊗ Z)).hom ≫ (α_ Y Z X).hom
+  = ((σ X Y).hom ⊗ (𝟙 Z)) ≫ (α_ Y X Z).hom ≫ (𝟙 Y ⊗ (σ X Z).hom)
+  . obviously)
+(hexagon_reverse'     : Π X Y Z : C,
+    (α_ X Y Z).inv ≫ (σ (X ⊗ Y) Z).hom ≫ (α_ Z X Y).inv
+  = ((𝟙 X) ⊗ (σ Y Z).hom) ≫ (α_ X Z Y).inv ≫ ((σ X Z).hom ⊗ (𝟙 Y))
+  . obviously)
+
+notation `σ` := braided_monoidal_category.braiding
+
+class symmetric_monoidal_category (C : Type u) [category.{v} C]
+extends braided_monoidal_category.{v} C :=
+(symmetry : ∀ X Y : C, (σ X Y).hom ≫ (σ Y X).hom = 𝟙 (X ⊗ Y) . obviously)
+
 end category_theory
