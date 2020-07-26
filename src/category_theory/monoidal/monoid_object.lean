@@ -7,7 +7,7 @@ universes u v
 
 variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 
-class Mon_in :=
+structure Mon_ :=
 (X          : C)
 (ι          : 𝟙_ C ⟶ X)
 (μ          : X ⊗ X ⟶ X)
@@ -15,19 +15,17 @@ class Mon_in :=
 (unit_left  : (ι ⊗ 𝟙 X) ≫ μ = (λ_ X).hom)
 (unit_right : (𝟙 X ⊗ ι) ≫ μ = (ρ_ X).hom)
 
-variable [symmetric_monoidal_category.{v} C]
-
-namespace Mon_in
+namespace Mon_
 
 variable {C}
 
 @[ext]
-structure hom (M N : Mon_in C) :=
+structure hom (M N : Mon_ C) :=
 (f : M.X ⟶ N.X)
 (h₁ : M.ι ≫ f = N.ι)
 (h₂ : M.μ ≫ f = (f ⊗ f) ≫ N.μ)
 
-instance : category (Mon_in C) :=
+instance : category (Mon_ C) :=
 {
   hom := λ M N, hom M N,
   id := λ _, {f := (𝟙 _), h₁ := by tidy, h₂ := by tidy},
@@ -49,4 +47,9 @@ instance : category (Mon_in C) :=
   end },
 }
 
-end Mon_in
+end Mon_
+
+variables (D : Type u) [category.{v} D] [braided_monoidal_category.{v} D]
+
+structure CommMon_ extends Mon_ D :=
+(comm : (σ X X).hom ≫ μ = μ)
